@@ -6,12 +6,18 @@
 //
 
 import SwiftUI
+import QuickLook
+import UIKit
 
 @main
 struct FILEJSOnApp: App {
+    
+    @StateObject var downloadManager = DownloadManager()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(downloadManager)
         }
     }
 }
