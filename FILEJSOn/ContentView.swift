@@ -18,36 +18,73 @@ class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDelegate {
 }
 
 struct ContentView: View {
-    @State private var appList: [AppInfo] = []
-        @EnvironmentObject var downloadManager: DownloadManager // Injected downloadManager
+    @State private var appLists: [[AppInfo]] = [[]] // Khởi tạo mảng con trống
+    @EnvironmentObject var downloadManager: DownloadManager // Injected downloadManager
+    @State private var apiURLString = ""
+    @State private var apiURLStrings = ["https://dunkeyyfong.click/repo.json"] // Một danh sách các liên kết API mặc định
 
-        var body: some View {
-            NavigationView {
-                List(appList) { app in
-                    NavigationLink(destination: DetailView(appInfo: app, downloadManager: _downloadManager)) {
-                        ListCellRow(appInfo: app)
+    var body: some View {
+        TabView {
+            ForEach(apiURLStrings.indices, id: \.self) { index in
+                NavigationView {
+                    List(appLists[index], id: \.id) { app in
+                        NavigationLink(destination: DetailView(appInfo: app, downloadManager: _downloadManager)) {
+                            ListCellRow(appInfo: app)
+                        }
+                    }
+                    .navigationBarTitle("App List")
+                    .onAppear {
+                        loadAppList(from: apiURLStrings[index], into: index)
                     }
                 }
-                .navigationBarTitle("App List")
-                .onAppear(perform: loadAppList)
+                .tabItem {
+                    Image(systemName: "list.bullet")
+                    Text("Danh sách \(index + 1)")
+                }
+            }
+
+            VStack {
+                TextField("Nhập liên kết API", text: $apiURLString)
+                    .padding()
+                Button(action: {
+                    addAPI(apiURLString)
+                }) {
+                    Text("Thêm API")
+                        .padding()
+                }
+                Spacer()
+            }
+            .tabItem {
+                Image(systemName: "arrow.down.doc")
+                Text("Tải từ API")
             }
         }
-    
-    private func loadAppList() {
-        guard let url = URL(string: "https://dunkeyyfong.click/repo.json") else { return }
-        
+    }
+
+    private func loadAppList(from apiURLString: String, into index: Int) {
+        guard let url = URL(string: apiURLString) else { return }
+
         URLSession.shared.dataTask(with: url) { data, response, error in
             if let data = data {
                 do {
                     let appListData = try JSONDecoder().decode(AppList.self, from: data)
                     DispatchQueue.main.async {
-                        self.appList = appListData.apps
+                        // Sử dụng index để lưu danh sách ứng dụng vào mảng tương ứng
+                        while appLists.count <= index {
+                            appLists.append([])
+                        }
+                        appLists[index] = appListData.apps
                     }
                 } catch {
                     print("Error decoding JSON: \(error)")
                 }
             }
         }.resume()
+    }
+
+    private func addAPI(_ apiURLString: String) {
+        apiURLStrings.append(apiURLString)
+        appLists.append([]) // Thêm một mảng con trống tương ứng với liên kết API mới
     }
 }
 
