@@ -26,6 +26,6 @@ guard let url = URL(string: "https://dunkeyyfong.click/repo.json") else { return
 ## Screenshot
 
 <div style="display: flex; padding: 10px">
-    <img src="./img1.png" style="width: 50%; padding-right: 20px">
-    <img src="./img2.png" style="width:50%">
+    <img src="./img1.png" style="width: 300px; padding-right: 50px">
+    <img src="./img2.png" style="width:300px">
 </div>
